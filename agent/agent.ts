@@ -77,8 +77,9 @@ let denied: { reason: string; used?: number; limit?: number } | null = null;
 let lastCart: string[] = [];
 
 for (let round = 1; round <= MAX_ROUNDS; round++) {
+  const remaining = denied ? (denied.limit ?? budget) - (denied.used ?? 0) : budget;
   const prompt = denied
-    ? `${task}\nYour cart ${JSON.stringify(lastCart)} ($${cartTotal(lastCart)}) was DENIED by the spend gate: ${denied.reason} (already spent today: $${denied.used ?? 0}, daily limit: $${denied.limit}). Pick a SMALLER cart that fits the remaining budget. Reply JSON only: {"items":["sku",...],"why":"short"}`
+    ? `${task}\nCatalog: ${JSON.stringify(catalog.items)}\nYour cart ${JSON.stringify(lastCart)} ($${cartTotal(lastCart)}) was DENIED by the spend gate: ${denied.reason}. You have already spent $${denied.used ?? 0} of the $${denied.limit} daily limit, so your remaining budget is $${remaining}. Pick a cart that totals at most $${remaining}. Reply JSON only, lowercase skus: {"items":["sku",...],"why":"short"}`
     : `${task}\nCatalog: ${JSON.stringify(catalog.items)}\nDaily budget: $${budget}. Pick the items to buy. Reply JSON only, using the lowercase sku values: {"items":["turkey","gravy",...],"why":"short"}`;
 
   console.log(`\n-- round ${round} -- brain thinking…`);
@@ -91,7 +92,14 @@ for (let round = 1; round <= MAX_ROUNDS; round++) {
     console.log(`brain returned unparseable: ${reply.slice(0, 160)}`);
     continue;
   }
-  if (!skus.length) { console.log("empty cart, retrying"); continue; }
+  if (!skus.length) {
+    if (denied) {
+      console.log(`brain: nothing affordable within remaining $${remaining} — stopping (honest outcome: budget exhausted)`);
+      break;
+    }
+    console.log("empty cart, retrying");
+    continue;
+  }
   lastCart = skus;
   const total = cartTotal(skus);
   console.log(`cart: ${skus.join(", ")} = $${total}`);
