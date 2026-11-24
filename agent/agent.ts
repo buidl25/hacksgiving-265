@@ -9,9 +9,9 @@ import { execSync } from "node:child_process";
 
 const HERE = new URL(".", import.meta.url).pathname;
 const CLIENT = `${HERE}gate-client.sh`;
-const MODEL = process.env.OLLAMA_MODEL ?? "llama3.2:1b";
+const MODEL = process.env.OLLAMA_MODEL ?? "llama3.2:3b";
 const BRAIN = process.env.AGENT_BRAIN ?? "ollama";
-const MAX_ROUNDS = 4;
+const MAX_ROUNDS = 5;
 
 /* ------------------------------- brain -------------------------------- */
 
@@ -79,15 +79,19 @@ let lastCart: string[] = [];
 for (let round = 1; round <= MAX_ROUNDS; round++) {
   const remaining = denied ? (denied.limit ?? budget) - (denied.used ?? 0) : budget;
   const prompt = denied
-    ? `${task}\nCatalog: ${JSON.stringify(catalog.items)}\nYour cart ${JSON.stringify(lastCart)} ($${cartTotal(lastCart)}) was DENIED by the spend gate: ${denied.reason}. You have already spent $${denied.used ?? 0} of the $${denied.limit} daily limit, so your remaining budget is $${remaining}. Pick a cart that totals at most $${remaining}. Reply JSON only, lowercase skus: {"items":["sku",...],"why":"short"}`
-    : `${task}\nCatalog: ${JSON.stringify(catalog.items)}\nDaily budget: $${budget}. Pick the items to buy. Reply JSON only, using the lowercase sku values: {"items":["turkey","gravy",...],"why":"short"}`;
+    ? `${task}\nCatalog: ${JSON.stringify(catalog.items)}\nYour cart ${JSON.stringify(lastCart)} ($${cartTotal(lastCart)}) was DENIED by the spend gate: ${denied.reason}. You have already spent $${denied.used ?? 0} of the $${denied.limit} daily limit, so your remaining budget is $${remaining}. Pick items whose priceUsd values sum to at most $${remaining}. Reply JSON only, lowercase skus, with the sum in "total": {"items":["sku",...],"total":9}`
+    : `${task}\nCatalog: ${JSON.stringify(catalog.items)}\nDaily budget: $${budget}. Pick the items to buy. Reply JSON only, using the lowercase sku values, with the sum of priceUsd in "total": {"items":["turkey","gravy"],"total":9}`;
 
   console.log(`\n-- round ${round} -- brain thinking…`);
   const reply = await brain(prompt);
   let skus: string[];
   try {
     const j = extractJson(reply);
-    skus = [...new Set(((j.items as string[]) ?? []).map(skuOf).filter(Boolean) as string[])];
+    const rawItems: any[] = j.items ?? j.cart ?? [];
+    // model may emit ["turkey",...] or [{"sku":"turkey",...}] — take both
+    skus = [...new Set(rawItems
+      .map((it) => skuOf(typeof it === "string" ? it : it?.sku ?? it?.name ?? ""))
+      .filter(Boolean) as string[])];
   } catch (e) {
     console.log(`brain returned unparseable: ${reply.slice(0, 160)}`);
     continue;
