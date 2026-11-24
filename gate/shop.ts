@@ -18,14 +18,16 @@ interface Receipt {
 }
 interface Db { balanceUsd: number; receipts: Record<string, Receipt>; byIntent: Record<string, string> }
 
+// Prices calibrated so the full cart ($20) exceeds the $10/day mandate
+// and a trimmed basket (turkey+gravy = $9) fits — that's the demo arc.
 const CATALOG: Item[] = [
-  { sku: "turkey", name: "Roast turkey 12lb", priceUsd: 80 },
-  { sku: "potatoes", name: "Yukon gold potatoes 5lb", priceUsd: 12 },
-  { sku: "cranberry", name: "Cranberry sauce x2", priceUsd: 9 },
-  { sku: "stuffing", name: "Stuffing mix", priceUsd: 7 },
-  { sku: "pie", name: "Pumpkin pie", priceUsd: 17 },
-  { sku: "gravy", name: "Gravy kit", priceUsd: 6 },
-  { sku: "rolls", name: "Dinner rolls x12", priceUsd: 8 },
+  { sku: "turkey", name: "Roast turkey 12lb", priceUsd: 8 },
+  { sku: "pie", name: "Pumpkin pie", priceUsd: 3.5 },
+  { sku: "potatoes", name: "Yukon gold potatoes 5lb", priceUsd: 2.5 },
+  { sku: "cranberry", name: "Cranberry sauce x2", priceUsd: 2 },
+  { sku: "rolls", name: "Dinner rolls x12", priceUsd: 1.5 },
+  { sku: "stuffing", name: "Stuffing mix", priceUsd: 1.5 },
+  { sku: "gravy", name: "Gravy kit", priceUsd: 1 },
 ];
 
 const load = (): Db => {

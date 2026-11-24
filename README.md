@@ -23,7 +23,8 @@ envelope check (`checkEnvelope`) decides from the persisted ledger.
 
 - `gate/server.ts` — Hono service: `/eval`, `/execute`, `/audit`, `/mandate`, `/healthz`
 - `gate/shop.ts` — `/demo/shop/*`: catalog, purchase (intentId-deduped), receipts
-- `gate/mandate.json` — the demo mandate: `dailyUsd: 100`, vendor allowlist
+- `gate/mandate.json` — the demo mandate: `dailyUsd: 10` (real money at
+  risk), vendor allowlist
 - `gate/vendor/` — byte-identical snapshot of `agentbadge@40eb49c` (mmf-255);
   `vendor-shasum.txt` pins all 68 files
 - `gate/shims/` — build-time shims for workspace-package imports

@@ -1,7 +1,7 @@
 {
   "mandateId": "mnd_thanksgiving_2026",
   "subject": "0xDeMoAaAaAaAaAaAaAaAaAaAaAaAaAaAaAaAa0001",
-  "caps": { "dailyUsd": 100 },
+  "caps": { "dailyUsd": 10 },
   "allowedVendors": ["agentbadge-shop"],
-  "note": "Hacksgiving demo mandate: Thanksgiving dinner essentials, budget $100/day. Only dailyUsd is set — an unset cap means uncapped in the envelope model; with any perTx < 125 the $125 test-cart would deny as PER_TX, not the documented DAILY_CAP_EXCEEDED (caps must be monotonic perTx <= daily)."
+  "note": "Hacksgiving demo mandate: Thanksgiving dinner essentials, real-money budget $10/day — the cap equals the actual funds at risk. Only dailyUsd is set: with any perTx < cart the test-cart would deny as PER_TX, not the documented DAILY_CAP_EXCEEDED (caps must be monotonic perTx <= daily)."
 }
