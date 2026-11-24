@@ -60,6 +60,10 @@ const task = readFileSync(`${HERE}task.md`, "utf8");
 const mandate = JSON.parse(sh("mandate"));
 const catalog = JSON.parse(execSync(`cat ${HERE}catalog.json`, "utf8"));
 const budget: number = mandate.caps.dailyUsd;
+// 1B models emit "Turkey" / "Pumpkin Pie" — normalize name or sku → sku
+const norm = (s: string) => String(s).toLowerCase().replace(/[^a-z0-9]/g, "");
+const skuOf = (k: string) =>
+  catalog.items.find((i: any) => norm(i.sku) === norm(k) || norm(i.name) === norm(k))?.sku;
 const price = (sku: string) => catalog.items.find((i: any) => i.sku === sku)?.priceUsd;
 const cartTotal = (skus: string[]) =>
   Math.round(skus.reduce((s, k) => s + (price(k) ?? 0), 0) * 100) / 100;
@@ -75,14 +79,14 @@ let lastCart: string[] = [];
 for (let round = 1; round <= MAX_ROUNDS; round++) {
   const prompt = denied
     ? `${task}\nYour cart ${JSON.stringify(lastCart)} ($${cartTotal(lastCart)}) was DENIED by the spend gate: ${denied.reason} (already spent today: $${denied.used ?? 0}, daily limit: $${denied.limit}). Pick a SMALLER cart that fits the remaining budget. Reply JSON only: {"items":["sku",...],"why":"short"}`
-    : `${task}\nCatalog: ${JSON.stringify(catalog.items)}\nDaily budget: $${budget}. Pick the items to buy as JSON only: {"items":["sku",...],"why":"short"}`;
+    : `${task}\nCatalog: ${JSON.stringify(catalog.items)}\nDaily budget: $${budget}. Pick the items to buy. Reply JSON only, using the lowercase sku values: {"items":["turkey","gravy",...],"why":"short"}`;
 
   console.log(`\n-- round ${round} -- brain thinking…`);
   const reply = await brain(prompt);
   let skus: string[];
   try {
     const j = extractJson(reply);
-    skus = (j.items as string[]).filter((k) => price(k) !== undefined);
+    skus = [...new Set(((j.items as string[]) ?? []).map(skuOf).filter(Boolean) as string[])];
   } catch (e) {
     console.log(`brain returned unparseable: ${reply.slice(0, 160)}`);
     continue;
