@@ -1,9 +1,0 @@
-{
-  "name": "@agentbadge/passport",
-  "version": "0.0.0",
-  "description": "Local shim: only ./logger is provided, matching the API used by vendored mmf-255 code (PROVENANCE.md).",
-  "exports": {
-    "./logger": "./logger.ts",
-    "./logger.ts": "./logger.ts"
-  }
-}
