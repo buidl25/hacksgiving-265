@@ -83,7 +83,13 @@ for (let round = 1; round <= MAX_ROUNDS; round++) {
     : `${task}\nCatalog: ${JSON.stringify(catalog.items)}\nDaily budget: $${budget}. Pick the items to buy. Reply JSON only, using the lowercase sku values, with the sum of priceUsd in "total": {"items":["turkey","gravy"],"total":9}`;
 
   console.log(`\n-- round ${round} -- brain thinking…`);
-  const reply = await brain(prompt);
+  let reply: string;
+  try {
+    reply = await brain(prompt);
+  } catch (e) {
+    console.log(`brain error (timeout/unreachable): ${String(e).slice(0, 120)} — retrying`);
+    continue;
+  }
   let skus: string[];
   try {
     const j = extractJson(reply);
